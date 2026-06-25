@@ -1,1 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Category Match Puzzle</title>
 
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    text-align: center;
+    margin: 20px;
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+#board {
+    width: 600px;
+    max-width: 95%;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.tile {
+    background: white;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 18px 10px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.tile:hover {
+    border-color: #666;
+}
+
+.selected {
+    background: #333;
+    color: white;
+}
+
+.group {
+    width: 600px;
+    max-width: 95%;
+    margin: 10px auto;
+    padding: 14px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+}
+
+button {
+    padding: 10px 18px;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#message {
+    font-size: 18px;
+    margin: 15px;
+}
+</style>
+</head>
+<body>
+
+<h1>Category Match Puzzle</h1>
+<p>Select 4 related words and press "Submit"</p>
+
+<div id="solved"></div>
+<div id="board"></div>
+
+<button onclick="checkGroup()">Submit</button>
+
+<div id="message"></div>
+
+<script>
+const categories = [
+{
+    name: "Colors",
+    color: "#f4c542",
+    words: ["RED", "BLUE", "GREEN", "YELLOW"]
+},
+{
+    name: "Planets",
+    color: "#4d96ff",
+    words: ["MARS", "VENUS", "EARTH", "SATURN"]
+},
+{
+    name: "Fruits",
+    color: "#6bcf63",
+    words: ["APPLE", "PEAR", "BANANA", "ORANGE"]
+},
+{
+    name: "Musical Instruments",
+    color: "#a55eea",
+    words: ["PIANO", "DRUM", "GUITAR", "VIOLIN"]
+}
+];
+
+const board = document.getElementById("board");
+const solved = document.getElementById("solved");
+const message = document.getElementById("message");
+
+let selected = [];
+let solvedGroups = [];
+
+let words = categories.flatMap(c => c.words);
+
+words.sort(() => Math.random() - 0.5);
+
+function renderBoard() {
+    board.innerHTML = "";
+
+    words.forEach(word => {
+        if (isSolved(word)) return;
+
+        const div = document.createElement("div");
+        div.className = "tile";
+
+        if (selected.includes(word)) {
+            div.classList.add("selected");
+        }
+
+        div.textContent = word;
+
+        div.onclick = () => toggle(word);
+
+        board.appendChild(div);
+    });
+}
+
+function toggle(word) {
+    if (selected.includes(word)) {
+        selected = selected.filter(w => w !== word);
+    } else if (selected.length < 4) {
+        selected.push(word);
+    }
+
+    renderBoard();
+}
+
+function isSolved(word) {
+    return solvedGroups.some(group => group.words.includes(word));
+}
+
+function checkGroup() {
+    if (selected.length !== 4) {
+        message.textContent = "Select exactly 4 words.";
+        return;
+    }
+
+    const match = categories.find(cat =>
+        cat.words.every(w => selected.includes(w))
+    );
+
+    if (match && !solvedGroups.includes(match)) {
+        solvedGroups.push(match);
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "group";
+        groupDiv.style.background = match.color;
+        groupDiv.textContent =
+            `${match.name}: ${match.words.join(", ")}`;
+
+        solved.appendChild(groupDiv);
+
+        selected = [];
+        renderBoard();
+
+        if (solvedGroups.length === categories.length) {
+            message.textContent = "🎉 Puzzle completed!";
+        } else {
+            message.textContent = "Correct group!";
+        }
+    } else {
+        message.textContent = "Not a valid group.";
+    }
+}
+
+renderBoard();
+</script>
+
+</body>
+</html>
